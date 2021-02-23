@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+</head>
+<body>
+<div id="app">
+    <div v-for="task in tasks" :key="task.id" class="task" :class="{completed: task.completed}">
+        <span class="title">{{ task.title }}</span>
+        <i
+            @click="setTaskCompleted(task.id)"
+            title="Пометить выполненой"
+            v-if="!task.completed"
+            class="fa fa-check set-completed" aria-hidden="true"
+        ></i>
+        <i @click="taskRemove(task.id)" title= "Удалить" class="fa fa-times delete" aria-hidden="true"></i>
+    </div>
+
+    <div class="addTask">
+        <input type="text" v-model="newTaskTitle" placeholder="Новая задача">
+        <button @click="taskAdd">Сохранить</button>
+    </div>
+</div>
+
+<script>
+var app = new Vue({
+    el: "#app",
+    data: {
+        tasks: [],
+        newTaskTitle: ""
+    },
+    methods: {
+        taskAdd() {
+            task = {
+                id: this.generateTaskId(),
+                title: this.newTaskTitle,
+                completed: false,
+            }
+            this.tasks.push(task)
+            this.newTaskTitle = ""
+            localStorage.setItem("tasks", JSON.stringify(this.tasks))
+        },
+        taskRemove(taskId) {
+            var task = this.tasks.filter(t => t.id == taskId)[0]
+            var index = this.tasks.indexOf(task)
+            this.tasks.splice(index, 1)
+            localStorage.setItem("tasks", JSON.stringify(this.tasks))
+        },
+        setTaskCompleted(taskId) {
+            var task = this.tasks.filter(t => t.id == taskId)[0]
+            var index = this.tasks.indexOf(task)
+            task.completed = true
+            this.tasks[index] = task
+            localStorage.setItem("tasks", JSON.stringify(this.tasks))
+        },
+        generateTaskId() {
+            if (this.tasks.length == 0) {
+                return 1
+            } else {
+                var lastTask = this.tasks[this.tasks.length - 1]
+                return lastTask.id + 1
+            }
+        },
+        formatTasks(taskList) {
+            return taskList.map(task => {
+                if (task.completed === undefined) {
+                    task.completed = false
+                }
+                return task
+            })
+        }
+    },
+    created() {
+        if (!localStorage.getItem("notFirstStart")) {
+            var tasksDef = [
+                {
+                    id: 1,
+                    title: "task1"
+                },
+                {
+                    id: 2,
+                    title: "task2",
+                    completed: true
+                },
+                {
+                    id: 3,
+                    title: "task3"
+                }
+            ]
+            localStorage.setItem("tasks", JSON.stringify(
+                this.formatTasks(tasksDef)
+            ))
+            localStorage.setItem("notFirstStart", true)
+        }
+
+        var tasksJson = localStorage.getItem("tasks")
+        if (tasksJson) {
+            this.tasks = JSON.parse(tasksJson)
+        }
+    }
+})
+</script>
+
+<style>
+.task {
+    margin-bottom: 7px;
+    font-size: 18px;
+}
+.title {
+    margin-right: 7px;
+}
+.delete {
+    color: #9E001F;
+    cursor: pointer;
+}
+.set-completed {
+    color: #007501;
+    cursor: pointer;
+    margin-right: 4px;;
+}
+.completed .title {
+    color: #5E5E5E;
+    text-decoration: line-through;
+    font-style: italic;
+}
+</style>
+
+</body>
+</html>
